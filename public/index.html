@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechSolutions FL - Sistema de Tickets</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+
+    /* NAVBAR */
+    .navbar {
+      background: linear-gradient(135deg, #0078d4, #005a9e);
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .navbar h1 { font-size: 22px; font-weight: 600; }
+    .navbar span { font-size: 13px; opacity: 0.85; }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      background: white;
+      border-bottom: 2px solid #e0e0e0;
+      padding: 0 30px;
+    }
+    .tab {
+      padding: 14px 24px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: #0078d4; }
+    .tab.active { color: #0078d4; border-bottom-color: #0078d4; }
+
+    /* CONTENIDO */
+    .content { padding: 30px; max-width: 1200px; margin: 0 auto; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* CARDS */
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .card h2 { font-size: 18px; margin-bottom: 20px; color: #0078d4; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+
+    /* FORMULARIOS */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 600; color: #555; }
+    input, select, textarea {
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border 0.2s;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #0078d4; }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* BOTONES */
+    .btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: #0078d4; color: white; }
+    .btn-primary:hover { background: #005a9e; }
+    .btn-success { background: #107c10; color: white; font-size: 12px; padding: 6px 14px; }
+    .btn-warning { background: #ff8c00; color: white; font-size: 12px; padding: 6px 14px; }
+    .btn-info { background: #0078d4; color: white; font-size: 12px; padding: 6px 14px; }
+
+    /* TABLA */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: #f8f9fa; padding: 12px 15px; text-align: left; font-weight: 600; color: #555; border-bottom: 2px solid #e0e0e0; }
+    td { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    tr:hover td { background: #f8f9ff; }
+
+    /* BADGES */
+    .badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-abierto { background: #dff0d8; color: #107c10; }
+    .badge-proceso { background: #fff3cd; color: #856404; }
+    .badge-cerrado { background: #f8d7da; color: #842029; }
+    .badge-alta { background: #f8d7da; color: #842029; }
+    .badge-media { background: #fff3cd; color: #856404; }
+    .badge-baja { background: #dff0d8; color: #107c10; }
+
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+    .stat-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-top: 4px solid #0078d4;
+    }
+    .stat-card.verde { border-top-color: #107c10; }
+    .stat-card.naranja { border-top-color: #ff8c00; }
+    .stat-card.rojo { border-top-color: #d13438; }
+    .stat-number { font-size: 32px; font-weight: 700; color: #0078d4; }
+    .stat-card.verde .stat-number { color: #107c10; }
+    .stat-card.naranja .stat-number { color: #ff8c00; }
+    .stat-card.rojo .stat-number { color: #d13438; }
+    .stat-label { font-size: 13px; color: #666; margin-top: 5px; }
+
+    /* ALERT */
+    .alert {
+      padding: 12px 18px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      display: none;
+    }
+    .alert-success { background: #dff0d8; color: #107c10; border: 1px solid #c3e6cb; }
+    .alert-error { background: #f8d7da; color: #842029; border: 1px solid #f5c6cb; }
+
+    .search-bar { margin-bottom: 15px; }
+    .search-bar input { width: 100%; max-width: 350px; }
+
+    .actions { display: flex; gap: 8px; }
+    .mt { margin-top: 15px; }
+
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .content { padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <h1>🖥️ TechSolutions FL</h1>
+  <span>Sistema de Gestión de Tickets</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('dashboard')">📊 Dashboard</div>
+  <div class="tab" onclick="showTab('tickets')">🎫 Tickets</div>
+  <div class="tab" onclick="showTab('clientes')">👥 Clientes</div>
+  <div class="tab" onclick="showTab('tecnicos')">🔧 Técnicos</div>
+</div>
+
+<div class="content">
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="section active">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="total-tickets">0</div>
+        <div class="stat-label">Total Tickets</div>
+      </div>
+      <div class="stat-card verde">
+        <div class="stat-number" id="tickets-abiertos">0</div>
+        <div class="stat-label">Abiertos</div>
+      </div>
+      <div class="stat-card naranja">
+        <div class="stat-number" id="tickets-proceso">0</div>
+        <div class="stat-label">En Proceso</div>
+      </div>
+      <div class="stat-card rojo">
+        <div class="stat-number" id="tickets-cerrados">0</div>
+        <div class="stat-label">Cerrados</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🕐 Tickets Recientes</h2>
+      <div class="table-wrap">
+        <table id="tabla-recientes">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Título</th>
+              <th>Cliente</th>
+              <th>Técnico</th>
+              <th>Prioridad</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="body-recientes"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TICKETS -->
+  <div id="tickets" class="section">
+    <div class="card">
+      <h2>➕ Nuevo Ticket</h2>
+      <div id="alert-ticket" class="alert"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cliente</label>
+          <select id="ticket-cliente"></select>
+        </div>
+        <div class="form-group">
+          <label>Técnico Asignado</label>
+          <select id="ticket-tecnico"></select>
+        </div>
+        <div class="form-group full">
+          <label>Título del Problema</label>
+          <input type="text" id="ticket-titulo" placeholder="Ej: Equipo no enciende">
+        </div>
+        <div class="form-group full">
+          <label>Descripción</label>
+          <textarea id="ticket-descripcion" placeholder="Describe el problema detalladamente..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Prioridad</label>
+          <select id="ticket-prioridad">
+            <option value="Baja">Baja</option>
+            <option value="Media" selected>Media</option>
+            <option value="Alta">Alta</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary mt" onclick="crearTicket()">Crear Ticket</button>
+    </div>
+
+    <div class="card">
+      <h2>📋 Lista de Tickets</h2>
+      <div class="search-bar">
+        <input type="text" id="buscar-ticket" placeholder="🔍 Buscar ticket..." oninput="filtrarTickets()">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Título</th>
+              <th>Cliente</th>
+              <th>Técnico</th>
+              <th>Prioridad</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="body-tickets"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENTES -->
+  <div id="clientes" class="section">
+    <div class="card">
+      <h2>➕ Registrar Cliente</h2>
+      <div id="alert-cliente" class="alert"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="cliente-nombre" placeholder="Nombre del contacto">
+        </div>
+        <div class="form-group">
+          <label>Empresa</label>
+          <input type="text" id="cliente-empresa" placeholder="Nombre de la empresa">
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" id="cliente-telefono" placeholder="33-1234-5678">
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="cliente-correo" placeholder="correo@empresa.com">
+        </div>
+        <div class="form-group full">
+          <label>Dirección</label>
+          <input type="text" id="cliente-direccion" placeholder="Calle, número, colonia">
+        </div>
+      </div>
+      <button class="btn btn-primary mt" onclick="registrarCliente()">Registrar Cliente</button>
+    </div>
+
+    <div class="card">
+      <h2>👥 Lista de Clientes</h2>
+      <div class="search-bar">
+        <input type="text" id="buscar-cliente" placeholder="🔍 Buscar cliente..." oninput="filtrarClientes()">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Empresa</th>
+              <th>Teléfono</th>
+              <th>Correo</th>
+              <th>Historial</th>
+            </tr>
+          </thead>
+          <tbody id="body-clientes"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TECNICOS -->
+  <div id="tecnicos" class="section">
+    <div class="card">
+      <h2>➕ Registrar Técnico</h2>
+      <div id="alert-tecnico" class="alert"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="tecnico-nombre" placeholder="Nombre del técnico">
+        </div>
+        <div class="form-group">
+          <label>Especialidad</label>
+          <input type="text" id="tecnico-especialidad" placeholder="Ej: Redes, Hardware, Software">
+        </div>
+        <div class="form-group full">
+          <label>Correo electrónico</label>
+          <input type="email" id="tecnico-correo" placeholder="tecnico@techsolutions.com">
+        </div>
+      </div>
+      <button class="btn btn-primary mt" onclick="registrarTecnico()">Registrar Técnico</button>
+    </div>
+
+    <div class="card">
+      <h2>🔧 Lista de Técnicos</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Especialidad</th>
+              <th>Correo</th>
+            </tr>
+          </thead>
+          <tbody id="body-tecnicos"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let todosTickets = [];
+  let todosClientes = [];
+
+  // ==================== TABS ====================
+  function showTab(tab) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    event.target.classList.add('active');
+    if (tab === 'dashboard') cargarDashboard();
+    if (tab === 'tickets') { cargarTickets(); cargarSelectores(); }
+    if (tab === 'clientes') cargarClientes();
+    if (tab === 'tecnicos') cargarTecnicos();
+  }
+
+  function showAlert(id, msg, tipo) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = `alert alert-${tipo}`;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 3000);
+  }
+
+  function formatDate(d) {
+    return new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  function badgeEstado(e) {
+    const map = { 'Abierto': 'abierto', 'En Proceso': 'proceso', 'Cerrado': 'cerrado' };
+    return `<span class="badge badge-${map[e] || 'abierto'}">${e}</span>`;
+  }
+
+  function badgePrioridad(p) {
+    const map = { 'Alta': 'alta', 'Media': 'media', 'Baja': 'baja' };
+    return `<span class="badge badge-${map[p] || 'media'}">${p}</span>`;
+  }
+
+  // ==================== DASHBOARD ====================
+  async function cargarDashboard() {
+    const tickets = await fetch('/api/tickets').then(r => r.json());
+    const abiertos = tickets.filter(t => t.estado === 'Abierto').length;
+    const proceso = tickets.filter(t => t.estado === 'En Proceso').length;
+    const cerrados = tickets.filter(t => t.estado === 'Cerrado').length;
+    document.getElementById('total-tickets').textContent = tickets.length;
+    document.getElementById('tickets-abiertos').textContent = abiertos;
+    document.getElementById('tickets-proceso').textContent = proceso;
+    document.getElementById('tickets-cerrados').textContent = cerrados;
+    const tbody = document.getElementById('body-recientes');
+    tbody.innerHTML = tickets.slice(0, 10).map(t => `
+      <tr>
+        <td>${t.id}</td>
+        <td>${t.titulo}</td>
+        <td>${t.cliente_nombre || '-'}</td>
+        <td>${t.tecnico_nombre || '-'}</td>
+        <td>${badgePrioridad(t.prioridad)}</td>
+        <td>${badgeEstado(t.estado)}</td>
+        <td>${formatDate(t.fecha_creacion)}</td>
+      </tr>`).join('');
+  }
+
+  // ==================== TICKETS ====================
+  async function cargarTickets() {
+    todosTickets = await fetch('/api/tickets').then(r => r.json());
+    renderTickets(todosTickets);
+  }
+
+  function renderTickets(tickets) {
+    document.getElementById('body-tickets').innerHTML = tickets.map(t => `
+      <tr>
+        <td>${t.id}</td>
+        <td>${t.titulo}</td>
+        <td>${t.cliente_nombre || '-'}<br><small>${t.empresa || ''}</small></td>
+        <td>${t.tecnico_nombre || '-'}</td>
+        <td>${badgePrioridad(t.prioridad)}</td>
+        <td>${badgeEstado(t.estado)}</td>
+        <td>${formatDate(t.fecha_creacion)}</td>
+        <td>
+          <div class="actions">
+            ${t.estado !== 'En Proceso' ? `<button class="btn btn-warning" onclick="cambiarEstado(${t.id}, 'En Proceso')">En Proceso</button>` : ''}
+            ${t.estado !== 'Cerrado' ? `<button class="btn btn-success" onclick="cambiarEstado(${t.id}, 'Cerrado')">Cerrar</button>` : ''}
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function filtrarTickets() {
+    const q = document.getElementById('buscar-ticket').value.toLowerCase();
+    renderTickets(todosTickets.filter(t =>
+      t.titulo.toLowerCase().includes(q) ||
+      (t.cliente_nombre || '').toLowerCase().includes(q) ||
+      (t.tecnico_nombre || '').toLowerCase().includes(q)
+    ));
+  }
+
+  async function crearTicket() {
+    const datos = {
+      cliente_id: document.getElementById('ticket-cliente').value,
+      tecnico_id: document.getElementById('ticket-tecnico').value,
+      titulo: document.getElementById('ticket-titulo').value,
+      descripcion: document.getElementById('ticket-descripcion').value,
+      prioridad: document.getElementById('ticket-prioridad').value
+    };
+    if (!datos.titulo || !datos.cliente_id) return showAlert('alert-ticket', '⚠️ Completa los campos obligatorios', 'error');
+    const res = await fetch('/api/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+    const data = await res.json();
+    showAlert('alert-ticket', '✅ ' + data.message, 'success');
+    document.getElementById('ticket-titulo').value = '';
+    document.getElementById('ticket-descripcion').value = '';
+    cargarTickets();
+  }
+
+  async function cambiarEstado(id, estado) {
+    await fetch(`/api/tickets/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado }) });
+    cargarTickets();
+    cargarDashboard();
+  }
+
+  async function cargarSelectores() {
+    const clientes = await fetch('/api/clientes').then(r => r.json());
+    const tecnicos = await fetch('/api/tecnicos').then(r => r.json());
+    document.getElementById('ticket-cliente').innerHTML = '<option value="">-- Selecciona cliente --</option>' + clientes.map(c => `<option value="${c.id}">${c.nombre} - ${c.empresa}</option>`).join('');
+    document.getElementById('ticket-tecnico').innerHTML = '<option value="">-- Selecciona técnico --</option>' + tecnicos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('');
+  }
+
+  // ==================== CLIENTES ====================
+  async function cargarClientes() {
+    todosClientes = await fetch('/api/clientes').then(r => r.json());
+    renderClientes(todosClientes);
+  }
+
+  function renderClientes(clientes) {
+    document.getElementById('body-clientes').innerHTML = clientes.map(c => `
+      <tr>
+        <td>${c.id}</td>
+        <td>${c.nombre}</td>
+        <td>${c.empresa || '-'}</td>
+        <td>${c.telefono || '-'}</td>
+        <td>${c.correo || '-'}</td>
+        <td><button class="btn btn-info" onclick="verHistorial(${c.id}, '${c.nombre}')">Ver historial</button></td>
+      </tr>`).join('');
+  }
+
+  function filtrarClientes() {
+    const q = document.getElementById('buscar-cliente').value.toLowerCase();
+    renderClientes(todosClientes.filter(c =>
+      c.nombre.toLowerCase().includes(q) ||
+      (c.empresa || '').toLowerCase().includes(q)
+    ));
+  }
+
+  async function registrarCliente() {
+    const datos = {
+      nombre: document.getElementById('cliente-nombre').value,
+      empresa: document.getElementById('cliente-empresa').value,
+      telefono: document.getElementById('cliente-telefono').value,
+      correo: document.getElementById('cliente-correo').value,
+      direccion: document.getElementById('cliente-direccion').value
+    };
+    if (!datos.nombre) return showAlert('alert-cliente', '⚠️ El nombre es obligatorio', 'error');
+    const res = await fetch('/api/clientes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+    const data = await res.json();
+    showAlert('alert-cliente', '✅ ' + data.message, 'success');
+    ['nombre','empresa','telefono','correo','direccion'].forEach(f => document.getElementById(`cliente-${f}`).value = '');
+    cargarClientes();
+  }
+
+  async function verHistorial(id, nombre) {
+    const tickets = await fetch(`/api/tickets/cliente/${id}`).then(r => r.json());
+    alert(`Historial de ${nombre}:\n\n` + (tickets.length === 0 ? 'Sin tickets registrados' : tickets.map(t => `[${t.estado}] ${t.titulo} - ${formatDate(t.fecha_creacion)}`).join('\n')));
+  }
+
+  // ==================== TECNICOS ====================
+  async function cargarTecnicos() {
+    const tecnicos = await fetch('/api/tecnicos').then(r => r.json());
+    document.getElementById('body-tecnicos').innerHTML = tecnicos.map(t => `
+      <tr>
+        <td>${t.id}</td>
+        <td>${t.nombre}</td>
+        <td>${t.especialidad || '-'}</td>
+        <td>${t.correo || '-'}</td>
+      </tr>`).join('');
+  }
+
+  async function registrarTecnico() {
+    const datos = {
+      nombre: document.getElementById('tecnico-nombre').value,
+      especialidad: document.getElementById('tecnico-especialidad').value,
+      correo: document.getElementById('tecnico-correo').value
+    };
+    if (!datos.nombre) return showAlert('alert-tecnico', '⚠️ El nombre es obligatorio', 'error');
+    const res = await fetch('/api/tecnicos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+    const data = await res.json();
+    showAlert('alert-tecnico', '✅ ' + data.message, 'success');
+    ['nombre','especialidad','correo'].forEach(f => document.getElementById(`tecnico-${f}`).value = '');
+    cargarTecnicos();
+  }
+
+  // Cargar dashboard al inicio
+  cargarDashboard();
+</script>
+</body>
+</html>
